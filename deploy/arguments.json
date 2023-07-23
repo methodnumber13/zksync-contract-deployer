@@ -1,0 +1,4 @@
+{
+    "name": "MyToken",
+    "arguments": ["MyToken", "ZKT", 18, 1000000000]
+}
