@@ -7,8 +7,8 @@ import {
   getContractArguments, 
   getFile, 
   getSecrets, 
-  getTotalFee, 
-  runCleanCompile 
+  runCleanCompile, 
+  waitForFee
 } from "./helpers";
 import { executeCommand } from '../scripts'
  
@@ -52,11 +52,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
       const deployer = new Deployer(hre, wallet);
       const artifact = await deployer.loadArtifact(CONTRACT_NAME);
       
-      let totalEstimatedFee = await getTotalFee({ deployer, artifact });
-  
-      while(totalEstimatedFee > +MAX_USD_FEE) {
-        totalEstimatedFee = await getTotalFee({ deployer, artifact });
-      }
+      await waitForFee(deployer, artifact);
   
       await deployAndVerify({ deployer, artifact, hre });
   

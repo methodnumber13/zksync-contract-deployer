@@ -15,9 +15,13 @@ Make sure you have the following installed on your system:
 2. Make sure .env file exists in the root directory and has the following environment variables:
    
 ```
-PRIVATE_KEY=your_private_key_here
-MAX_USD_FEE=1
+TIMEOUT_MS=10000 #request gas price timeout
+MAX_USD_FEE=1 #max comission value(included gas and deploy comission)
 ```
+3. Add your private keys to .secrets file.
+4. If you want to deploy any another contract:
+   * navigate to contracts folder, remove existed contract and paste your own
+   * change variables in deploy/arguments.js dependent on your contract
 
 ## Usage
 

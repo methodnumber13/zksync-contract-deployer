@@ -1,5 +1,25 @@
 const { PLATFORM, detectOS, executeCommand } = require('./index')
 
+/**
+ * Removes specified folders based on the detected operating system.
+ *
+ * @async
+ * @function
+ * @returns {Promise<void>} A promise that resolves after removing the folders successfully.
+ * @throws {Error} If there are issues executing the commands or if the folders cannot be removed.
+ * @example
+ * // Example usage:
+ * async function main() {
+ *   try {
+ *     await rimraf();
+ *     console.log('Folders removed successfully.');
+ *   } catch (error) {
+ *     console.error('Error removing folders:', error.message);
+ *   }
+ * }
+ * main();
+ */
+
 async function rimraf() {
     const FOLDERS_TO_REMOVE = 'out artifacts-zk cache-zk'
     try {

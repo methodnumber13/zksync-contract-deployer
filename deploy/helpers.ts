@@ -153,7 +153,6 @@ import { executeCommand } from '../scripts'
   export async function getContractArguments() {
     const defaultValue = { name: "", arguments: [] };
     try {
-      const defaultValue = { name: "", arguments: [] };
       const args = (await import('./arguments.json')).default || defaultValue;
       return args
     } catch (error) {
@@ -233,28 +232,105 @@ export async function deployAndVerify({ deployer, artifact, hre }: DeployerType)
 
       const totalFee = +deploymentFee + +gasFee;
       console.log(`total fee: ${totalFee} ETH`);
-      return totalFee;
+
+      const ethPrice = await getCurrentETHPrice();
+      const totalFeeUSD = ethPrice * totalFee;
+      console.log(`total fee: ${totalFeeUSD} USD`);
+
+      return totalFeeUSD;
     } catch (error) {
       console.error(error)
       return 0;
     }
   }
 
-  export async function getSecrets() {
+    /**
+   * Reads the secrets from the .secrets file and returns them as an array.
+   *
+   * @async
+   * @returns {Promise<string[]>} An array containing the secrets read from the file.
+   * @throws {Error} If there are issues reading the .secrets file.
+   */
+
+  export async function getSecrets(): Promise<string[]> {
     try {
       const pathToFile = path.join(__dirname, '../', '.secrets')
-
-      const files = fs.readFileSync(pathToFile, {encoding: 'utf-8'})
-
+      const files = fs.readFileSync(pathToFile, { encoding: 'utf-8' })
       const lines = files.trim().split('\n');
-      
       const secrets = lines.filter((line) => line.trim() !== '');
       
-      console.log('Secrets array:', secrets);
       return secrets
-
     } catch (error) {
       console.error(error);
       return []
+    }
+  }
+
+    /**
+   * Fetches the current price of Ethereum (ETH) in USD from the CoinGecko API.
+   *
+   * @async
+   * @param {string} currency - The currency to fetch the price for (default is 'ethereum').
+   * @param {string} toSearch - The target currency to convert to (default is 'usd').
+   * @returns {Promise<number>} The current price of Ethereum in USD.
+   * @throws {Error} If there are issues with the API request or parsing the response.
+   */
+
+  export async function getCurrentETHPrice(currency = 'ethereum', toSearch = 'usd'): Promise<number> {
+    try {
+      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=${toSearch}`;
+      const headers = { 'accept': 'application/json' };
+      const response = await fetch(url, { headers, method: 'GET' });
+      if(!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      return data?.ethereum?.usd || 0;
+    } catch (error) {
+      console.log(error);
+      return 0;
+    }
+  }
+
+  /**
+ * A utility function that introduces a delay of the specified duration.
+ *
+ * @async
+ * @param {number} ms - The duration in milliseconds to wait.
+ * @returns {Promise<void>} A promise that resolves after the specified duration.
+ */
+
+  async function wait(ms: number) { 
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+ * Waits for the fee estimation to be within the acceptable range specified by `MAX_USD_FEE`.
+ * It uses the `waitForFee` function to repeatedly check the fee with a delay of `TIMEOUT_MS` milliseconds.
+ *
+ * @async
+ * @param {Deployer} deployer - The deployer instance.
+ * @param {ZkSyncArtifact} artifact - The contract artifact.
+ * @returns {Promise<number>} The total fee amount in USD once it is within the acceptable range.
+ * @throws {Error} If there are issues with the fee estimation or if the timeout is exceeded.
+ */
+
+  export async function waitForFee(deployer: Deployer, artifact: ZkSyncArtifact) {
+    try {
+      const MAX_USD_FEE = process.env.MAX_USD_FEE as string;
+      const TIMEOUT_MS = process.env.TIMEOUT_MS as string;
+      
+      while (true) {
+        const totalEstimatedFee = await getTotalFee({ deployer, artifact });
+    
+        if (totalEstimatedFee <= +MAX_USD_FEE) {
+          return totalEstimatedFee;
+        }
+        console.log(`Sleep for ${TIMEOUT_MS} seconds`)
+        await wait(+TIMEOUT_MS);
+      }
+    } catch (error) {
+      console.error(error)
+      return 0
     }
   }
