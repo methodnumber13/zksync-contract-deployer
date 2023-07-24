@@ -16,7 +16,7 @@ Make sure you have the following installed on your system:
    
 ```
 TIMEOUT_MS=10000 #request gas price timeout
-MAX_USD_FEE=1 #max comission value(included gas and deploy comission)
+MAX_USD_FEE=1 #max commission value(included gas and deploy commission)
 ```
 3. Add your private keys to .secrets file.
 4. If you want to deploy any another contract:
