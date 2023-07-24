@@ -256,6 +256,9 @@ export async function deployAndVerify({ deployer, artifact, hre }: DeployerType)
     try {
       const pathToFile = path.join(__dirname, '../', '.secrets')
       const files = fs.readFileSync(pathToFile, { encoding: 'utf-8' })
+      if(!files) {
+        throw Error('There are no private keys found')
+      }
       const lines = files.trim().split('\n');
       const secrets = lines.filter((line) => line.trim() !== '');
       
